@@ -1,0 +1,25 @@
+{
+  "name": "datapulse-guardian",
+  "description": "Veri kalitesi, şema değişikliği ve etki analizi platformu.",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"node --watch server/index.js\" \"vite\"",
+    "dev:api": "node --watch server/index.js",
+    "dev:web": "vite",
+    "build": "vite build",
+    "start": "node server/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "cors": "latest",
+    "express": "latest",
+    "vue": "latest"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "latest",
+    "concurrently": "latest",
+    "vite": "latest"
+  }
+}

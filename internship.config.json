@@ -1,0 +1,9 @@
+{
+  "timezone": "Europe/Istanbul",
+  "dailyRunTime": "09:55",
+  "endDate": "2026-09-11",
+  "slack": {
+    "workspaceUrl": "",
+    "channel": ""
+  }
+}

@@ -1,0 +1,27 @@
+# DataPulse Guardian proje notları
+
+DataPulse Guardian, kaynak sistemlerdeki veri kalitesi sorunlarını ve şema değişikliklerini veri ürünlerini etkilemeden önce yakalayan ve etki alanını görünür kılan bir veri gözlem platformudur.
+
+## Çalıştırma
+
+```bash
+pnpm install
+pnpm dev
+```
+
+- Arayüz: http://127.0.0.1:5173
+- API: http://127.0.0.1:3000/api/health
+
+İlk sürüm Vue 3 istemcisi, Express 5 REST API'si, migration tabanlı SQLite RDBMS katmanı, veri kaynakları, profil çalıştırmaları ve kalite sorunlarından oluşur.
+
+## Komutlar
+
+- `pnpm dev`: API ve Vue geliştirme sunucusunu birlikte başlatır.
+- `pnpm test`: REST API testlerini çalıştırır.
+- `pnpm build`: Üretim arayüzünü oluşturur.
+
+Günlük geliştirme hedefleri kök dizindeki `ROADMAP.md`, yapılan işler ise `WORKLOG.md` dosyasında tutulur. Kılavuzdaki terimlerin projedeki karşılığı `docs/CONCEPT_MAP.md` dosyasında izlenir.
+
+## Slack günlük mesajı
+
+Otomasyon mesaj taslağını `updates/YYYY-MM-DD.md` altında oluşturur. Kanal yöneticisinin oluşturduğu Slack Incoming Webhook adresi yerel `.env` dosyasındaki `SLACK_WEBHOOK_URL` değişkenine eklenir. Gizli webhook adresi Git'e eklenmez veya paylaşılmaz.
