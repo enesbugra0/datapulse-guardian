@@ -52,6 +52,31 @@ const migrations = [
       CREATE INDEX idx_quality_issues_run ON quality_issues(run_id);
     `,
   },
+  {
+    version: 3,
+    name: "create_data_contracts",
+    sql: `
+      CREATE TABLE data_contracts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_id INTEGER NOT NULL REFERENCES data_sources(id) ON DELETE CASCADE,
+        version TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        UNIQUE(source_id, version)
+      );
+
+      CREATE TABLE contract_fields (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        contract_id INTEGER NOT NULL REFERENCES data_contracts(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        data_type TEXT NOT NULL,
+        is_required INTEGER NOT NULL DEFAULT 0 CHECK (is_required IN (0, 1)),
+        UNIQUE(contract_id, name)
+      );
+
+      CREATE INDEX idx_data_contracts_source ON data_contracts(source_id, id DESC);
+      CREATE INDEX idx_contract_fields_contract ON contract_fields(contract_id);
+    `,
+  },
 ];
 
 export function migrate(database) {

@@ -12,7 +12,7 @@ pnpm dev
 - Arayüz: http://127.0.0.1:5173
 - API: http://127.0.0.1:3000/api/health
 
-İlk sürüm Vue 3 istemcisi, Express 5 REST API'si, migration tabanlı SQLite RDBMS katmanı, veri kaynakları, profil çalıştırmaları ve kalite sorunlarından oluşur.
+İlk sürüm Vue 3 istemcisi, Express 5 REST API'si, migration tabanlı SQLite RDBMS katmanı, veri kaynakları, profil çalıştırmaları, kalite sorunları ve sürümlü veri sözleşmelerinden oluşur. `POST /api/data-sources/:id/contracts` yeni bir sözleşmeyi kaydeder ve önceki sürüme göre eklenen, silinen veya değişen alanları döndürür; `GET /api/data-sources/:id/contracts/latest` son sürümü getirir. Hata yanıtları `{ error: { code, message } }` biçimindedir.
 
 ## Komutlar
 

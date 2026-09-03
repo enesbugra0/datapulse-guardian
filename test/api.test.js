@@ -5,6 +5,7 @@ import { openDatabase } from "../server/db/database.js";
 import { migrate } from "../server/db/migrations.js";
 import { seedDemoData } from "../server/db/demoSeed.js";
 import { SqliteQualityRepository } from "../server/repositories/sqliteQualityRepository.js";
+import { SqliteContractRepository } from "../server/repositories/sqliteContractRepository.js";
 import { SqliteTaskRepository } from "../server/repositories/sqliteTaskRepository.js";
 
 let server;
@@ -17,7 +18,8 @@ before(async () => {
   seedDemoData(database);
   const taskRepository = new SqliteTaskRepository(database);
   const qualityRepository = new SqliteQualityRepository(database);
-  server = createApp({ taskRepository, qualityRepository }).listen(0, "127.0.0.1");
+  const contractRepository = new SqliteContractRepository(database);
+  server = createApp({ taskRepository, qualityRepository, contractRepository }).listen(0, "127.0.0.1");
   await new Promise((resolve) => server.once("listening", resolve));
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 });
@@ -63,7 +65,9 @@ test("invalid task input returns a useful validation error", async () => {
     body: JSON.stringify({ title: "x" }),
   });
   assert.equal(response.status, 400);
-  assert.match((await response.json()).error, /3 karakter/);
+  const body = await response.json();
+  assert.equal(body.error.code, "TASK_VALIDATION_ERROR");
+  assert.match(body.error.message, /3 karakter/);
 });
 
 test("SQLite repository keeps data between repository instances", () => {
@@ -88,4 +92,38 @@ test("data source endpoint returns latest profiling result", async () => {
   assert.equal(sources.length, 3);
   assert.equal(sources[1].name, "Ticaret Sicil Akışı");
   assert.equal(sources[1].issueCount, 3);
+});
+
+test("data contract versions report added, removed and changed fields", async () => {
+  const sourceId = 1;
+  const first = await fetch(`${baseUrl}/api/data-sources/${sourceId}/contracts`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ version: "1.0.0", fields: [
+      { name: "customer_id", type: "integer", required: true },
+      { name: "email", type: "string", required: false },
+    ] }),
+  });
+  assert.equal(first.status, 201);
+  const second = await fetch(`${baseUrl}/api/data-sources/${sourceId}/contracts`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ version: "1.1.0", fields: [
+      { name: "customer_id", type: "string", required: true },
+      { name: "registered_at", type: "datetime", required: true },
+    ] }),
+  });
+  const result = (await second.json()).data;
+  assert.equal(second.status, 201);
+  assert.deepEqual(result.changes.added.map((field) => field.name), ["registered_at"]);
+  assert.deepEqual(result.changes.removed.map((field) => field.name), ["email"]);
+  assert.equal(result.changes.changed[0].name, "customer_id");
+  assert.equal(result.changes.hasChanges, true);
+});
+
+test("contract validation uses the standard REST error shape", async () => {
+  const response = await fetch(`${baseUrl}/api/data-sources/1/contracts`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ version: "", fields: [] }),
+  });
+  assert.equal(response.status, 400);
+  assert.deepEqual((await response.json()).error.code, "CONTRACT_VALIDATION_ERROR");
 });

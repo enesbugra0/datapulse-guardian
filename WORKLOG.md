@@ -23,3 +23,13 @@ Sıradaki hedef: SQLite veri katmanı ve migration altyapısı.
 - Doğrulama: 6/6 test geçti, API canlı kontrolü ve Vite üretim derlemesi başarıyla tamamlandı.
 
 Sıradaki hedef: CSV/JSON/XML veri alımı ve otomatik profil çıkarma.
+
+## 3 Eylül 2026
+
+- Veri kaynağına bağlı, sürüm numarası taşıyan veri sözleşmesi ve sözleşme alanları için SQLite migration'ı eklendi.
+- Sözleşme oluşturma ile en güncel sözleşmeyi okuma REST uçları uygulandı.
+- Ardışık sözleşme sürümlerinde eklenen, silinen, tipi veya zorunluluğu değişen alanların farkı API'den döndürülmeye başlandı.
+- Görev ve sözleşme doğrulama hataları kod, mesaj ve isteğe bağlı ayrıntı içeren ortak REST hata biçimine alındı.
+- Doğrulama: 8/8 API testi ve üretim derlemesi başarılı; sözleşme farkı kabul ölçütü karşılandı.
+
+Sıradaki hedef: kalite kuralları ve puanlama motoru.
