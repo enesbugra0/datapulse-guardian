@@ -33,3 +33,14 @@ Sıradaki hedef: CSV/JSON/XML veri alımı ve otomatik profil çıkarma.
 - Doğrulama: 8/8 API testi ve üretim derlemesi başarılı; sözleşme farkı kabul ölçütü karşılandı.
 
 Sıradaki hedef: kalite kuralları ve puanlama motoru.
+
+## 9 Eylül 2026
+
+- Kaynak, iş hattı, tablo, kural ve dashboard bileşenlerini tutan veri soy ağacı SQLite migration'ı eklendi.
+- Değişen bir bileşenden sonraki bağımlılıkları ziyaret edilen düğümlerle güvenli biçimde recursive tarayan etki analizi uygulandı.
+- Etkilenen bileşen sayısı blast-radius olarak, önem derecelerine göre de risk puanı ve seviyesi olarak REST API'den döndürülmeye başlandı.
+- Etki analizi sonucu Vue dashboard'unda başlangıç bileşeni seçilerek görüntülenebilir hâle getirildi.
+- Kabul ölçütü: recursive tarama dört alt bileşeni buluyor; blast-radius ve kritik risk puanı API testinde doğrulandı.
+- Doğrulama: `pnpm test` 10/10 geçti, `pnpm build` başarılı.
+
+Sıradaki hedef: kritik bulgular için bildirim, kullanıcı tercihleri ve Docker paketleme.

@@ -10,7 +10,7 @@ Bu belge, kılavuzdaki başlıkların DataPulse Guardian içinde nasıl gösteri
 | Vue.js, HTML, CSS | Responsive görev panosu | Uygulandı |
 | RDBMS | SQLite görev veritabanı | Uygulandı |
 | NoSQL | Ham profil sonuçları ve append-only olay deposu | Planlandı |
-| Graph DB | Kaynak-ETL-tablo-kural-dashboard veri soy ağacı | Planlandı |
+| Graph DB | SQLite üzerinde kaynak-iş-tablo-kural-dashboard veri soy ağacı ve etki taraması | Uygulandı |
 | Git, SVN | Git iş akışı ve sürüm kontrolü karşılaştırması | Kısmen uygulandı |
 | Jenkins, Kubernetes, Azure | CI/CD ve dağıtım mimarisi belgeleri | Planlandı |
 | Cookie | Oturum kimliği ve sunucu tercihi | Planlandı |
@@ -25,7 +25,7 @@ Bu belge, kılavuzdaki başlıkların DataPulse Guardian içinde nasıl gösteri
 | XML | İçerik anlaşması ve SOAP yanıtları | Planlandı |
 | ORM | Repository/data mapper ve code-first yaklaşım karşılaştırması | Kısmen uygulandı |
 | Docker | Çok aşamalı uygulama imajı | Planlandı |
-| HackerRank, data structures, recursion | Blast-radius bağımlılık grafiği algoritmaları | Planlandı |
+| HackerRank, data structures, recursion | Döngü güvenli recursive blast-radius bağımlılık grafiği algoritması | Uygulandı |
 | Debugging | Yapılandırılmış REST hata yanıtları ve API testleri | Uygulandı |
 | callbacks, promises, await | API istemcisi ve kontrollü async iş akışları | Kısmen uygulandı |
 

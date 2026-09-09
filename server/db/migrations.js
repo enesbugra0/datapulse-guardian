@@ -77,6 +77,31 @@ const migrations = [
       CREATE INDEX idx_contract_fields_contract ON contract_fields(contract_id);
     `,
   },
+  {
+    version: 4,
+    name: "create_lineage_graph",
+    sql: `
+      CREATE TABLE lineage_nodes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        node_type TEXT NOT NULL CHECK (node_type IN ('source', 'pipeline', 'table', 'rule', 'dashboard')),
+        criticality TEXT NOT NULL DEFAULT 'medium' CHECK (criticality IN ('low', 'medium', 'high', 'critical')),
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE lineage_edges (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        from_node_id INTEGER NOT NULL REFERENCES lineage_nodes(id) ON DELETE CASCADE,
+        to_node_id INTEGER NOT NULL REFERENCES lineage_nodes(id) ON DELETE CASCADE,
+        relation TEXT NOT NULL,
+        UNIQUE(from_node_id, to_node_id, relation),
+        CHECK(from_node_id <> to_node_id)
+      );
+
+      CREATE INDEX idx_lineage_edges_from ON lineage_edges(from_node_id);
+      CREATE INDEX idx_lineage_edges_to ON lineage_edges(to_node_id);
+    `,
+  },
 ];
 
 export function migrate(database) {

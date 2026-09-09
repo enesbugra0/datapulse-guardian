@@ -3,6 +3,8 @@ import { computed, onMounted, ref } from "vue";
 
 const overview = ref(null);
 const sources = ref([]);
+const lineage = ref(null);
+const impact = ref(null);
 const loading = ref(true);
 const error = ref("");
 
@@ -37,16 +39,28 @@ async function loadDashboard() {
   loading.value = true;
   error.value = "";
   try {
-    const [overviewResponse, sourcesResponse] = await Promise.all([
+    const [overviewResponse, sourcesResponse, lineageResponse] = await Promise.all([
       request("/api/quality/overview"),
       request("/api/data-sources"),
+      request("/api/lineage"),
     ]);
     overview.value = overviewResponse.data;
     sources.value = sourcesResponse.data;
+    lineage.value = lineageResponse.data;
+    const source = lineage.value.nodes.find((node) => node.type === "source");
+    if (source) await loadImpact(source.id);
   } catch (cause) {
     error.value = cause.message;
   } finally {
     loading.value = false;
+  }
+}
+
+async function loadImpact(nodeId) {
+  try {
+    impact.value = (await request(`/api/lineage/${nodeId}/impact`)).data;
+  } catch (cause) {
+    error.value = cause.message;
   }
 }
 
@@ -149,6 +163,26 @@ onMounted(loadDashboard);
             </article>
           </div>
         </aside>
+      </section>
+
+      <section v-if="lineage && impact" class="panel impact-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">ETKİ ANALİZİ</p>
+            <h2>{{ impact.root.name }} değişirse</h2>
+          </div>
+          <span class="severity" :class="`severity--${impact.riskLevel === 'critical' ? 'critical' : 'warning'}`">{{ impact.riskLevel }} risk</span>
+        </div>
+        <div class="impact-summary">
+          <strong>{{ impact.blastRadius }}</strong><span>etkilenen bileşen</span>
+          <strong>{{ impact.riskScore }}/100</strong><span>risk puanı</span>
+        </div>
+        <div class="lineage-actions" aria-label="Etki analizi başlangıç bileşeni">
+          <button v-for="node in lineage.nodes" :key="node.id" type="button" :class="{ active: node.id === impact.root.id }" @click="loadImpact(node.id)">{{ node.name }}</button>
+        </div>
+        <ol class="impact-path">
+          <li v-for="node in impact.affected" :key="node.id"><strong>{{ node.name }}</strong><span>{{ node.type }} · {{ node.depth }} adım · {{ node.criticality }}</span></li>
+        </ol>
       </section>
     </template>
   </main>

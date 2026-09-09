@@ -6,6 +6,7 @@ import { migrate } from "../server/db/migrations.js";
 import { seedDemoData } from "../server/db/demoSeed.js";
 import { SqliteQualityRepository } from "../server/repositories/sqliteQualityRepository.js";
 import { SqliteContractRepository } from "../server/repositories/sqliteContractRepository.js";
+import { SqliteLineageRepository } from "../server/repositories/sqliteLineageRepository.js";
 import { SqliteTaskRepository } from "../server/repositories/sqliteTaskRepository.js";
 
 let server;
@@ -19,7 +20,8 @@ before(async () => {
   const taskRepository = new SqliteTaskRepository(database);
   const qualityRepository = new SqliteQualityRepository(database);
   const contractRepository = new SqliteContractRepository(database);
-  server = createApp({ taskRepository, qualityRepository, contractRepository }).listen(0, "127.0.0.1");
+  const lineageRepository = new SqliteLineageRepository(database);
+  server = createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository }).listen(0, "127.0.0.1");
   await new Promise((resolve) => server.once("listening", resolve));
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 });
@@ -126,4 +128,25 @@ test("contract validation uses the standard REST error shape", async () => {
   });
   assert.equal(response.status, 400);
   assert.deepEqual((await response.json()).error.code, "CONTRACT_VALIDATION_ERROR");
+});
+
+test("lineage impact recursively finds downstream components and scores risk", async () => {
+  const graph = await fetch(`${baseUrl}/api/lineage`);
+  const source = (await graph.json()).data.nodes.find((node) => node.type === "source");
+  const response = await fetch(`${baseUrl}/api/lineage/${source.id}/impact`);
+  const impact = (await response.json()).data;
+  assert.equal(response.status, 200);
+  assert.equal(impact.blastRadius, 4);
+  assert.equal(impact.riskScore, 100);
+  assert.equal(impact.riskLevel, "critical");
+  assert.deepEqual(impact.affected.map((node) => node.name), [
+    "Sicil Normalizasyonu", "Şirket Risk Tablosu", "Vergi No Zorunluluğu", "Risk Operasyon Paneli",
+  ]);
+  assert.equal(impact.affected[2].depth, 3);
+});
+
+test("unknown lineage node returns the standard not-found error", async () => {
+  const response = await fetch(`${baseUrl}/api/lineage/999/impact`);
+  assert.equal(response.status, 404);
+  assert.equal((await response.json()).error.code, "LINEAGE_NODE_NOT_FOUND");
 });

@@ -1,6 +1,9 @@
 export function seedDemoData(database) {
   const total = Number(database.prepare("SELECT count(*) AS total FROM data_sources").get().total);
-  if (total > 0) return;
+  if (total > 0) {
+    seedLineage(database);
+    return;
+  }
 
   const now = new Date().toISOString();
   const insertSource = database.prepare(
@@ -59,6 +62,31 @@ export function seedDemoData(database) {
       "Aynı sicil numarası birden fazla kayıtta gözlendi.",
       "TSG-20481",
     );
+    database.exec("COMMIT;");
+  } catch (error) {
+    database.exec("ROLLBACK;");
+    throw error;
+  }
+  seedLineage(database);
+}
+
+function seedLineage(database) {
+  const total = Number(database.prepare("SELECT count(*) AS total FROM lineage_nodes").get().total);
+  if (total > 0) return;
+  const now = new Date().toISOString();
+  const insertNode = database.prepare("INSERT INTO lineage_nodes (name, node_type, criticality, created_at) VALUES (?, ?, ?, ?)");
+  const insertEdge = database.prepare("INSERT INTO lineage_edges (from_node_id, to_node_id, relation) VALUES (?, ?, ?)");
+  database.exec("BEGIN IMMEDIATE;");
+  try {
+    const source = Number(insertNode.run("Ticaret Sicil Akışı", "source", "high", now).lastInsertRowid);
+    const pipeline = Number(insertNode.run("Sicil Normalizasyonu", "pipeline", "high", now).lastInsertRowid);
+    const table = Number(insertNode.run("Şirket Risk Tablosu", "table", "critical", now).lastInsertRowid);
+    const rule = Number(insertNode.run("Vergi No Zorunluluğu", "rule", "medium", now).lastInsertRowid);
+    const dashboard = Number(insertNode.run("Risk Operasyon Paneli", "dashboard", "high", now).lastInsertRowid);
+    insertEdge.run(source, pipeline, "besler");
+    insertEdge.run(pipeline, table, "üretir");
+    insertEdge.run(table, rule, "denetlenir");
+    insertEdge.run(table, dashboard, "gösterir");
     database.exec("COMMIT;");
   } catch (error) {
     database.exec("ROLLBACK;");

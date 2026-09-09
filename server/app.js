@@ -21,10 +21,11 @@ function validContract(body) {
   return null;
 }
 
-export function createApp({ taskRepository, qualityRepository, contractRepository }) {
+export function createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository }) {
   if (!taskRepository) throw new Error("taskRepository zorunludur.");
   if (!qualityRepository) throw new Error("qualityRepository zorunludur.");
   if (!contractRepository) throw new Error("contractRepository zorunludur.");
+  if (!lineageRepository) throw new Error("lineageRepository zorunludur.");
 
   const app = express();
   app.use(cors());
@@ -40,6 +41,18 @@ export function createApp({ taskRepository, qualityRepository, contractRepositor
 
   app.get("/api/data-sources", (_request, response) => {
     response.json({ data: qualityRepository.listSources() });
+  });
+
+  app.get("/api/lineage", (_request, response) => {
+    response.json({ data: lineageRepository.graph() });
+  });
+
+  app.get("/api/lineage/:id/impact", (request, response) => {
+    const nodeId = Number(request.params.id);
+    if (!Number.isInteger(nodeId)) return error(response, 400, "LINEAGE_NODE_VALIDATION_ERROR", "Geçerli bir bileşen kimliği zorunludur.");
+    const impact = lineageRepository.impact(nodeId);
+    if (!impact) return error(response, 404, "LINEAGE_NODE_NOT_FOUND", "Veri soy ağacı bileşeni bulunamadı.");
+    return response.json({ data: impact });
   });
 
   app.get("/api/data-sources/:id/contracts/latest", (request, response) => {
