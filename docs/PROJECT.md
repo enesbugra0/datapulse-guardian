@@ -12,13 +12,15 @@ pnpm dev
 - Arayüz: http://127.0.0.1:5173
 - API: http://127.0.0.1:3000/api/health
 
-İlk sürüm Vue 3 istemcisi, Express 5 REST API'si, migration tabanlı SQLite RDBMS katmanı, veri kaynakları, profil çalıştırmaları, kalite sorunları, sürümlü veri sözleşmeleri ve veri soy ağacından oluşur. `POST /api/data-sources/:id/contracts` yeni bir sözleşmeyi kaydeder ve önceki sürüme göre eklenen, silinen veya değişen alanları döndürür; `GET /api/data-sources/:id/contracts/latest` son sürümü getirir. `GET /api/lineage/:id/impact`, bağımlılık grafiğini döngüye girmeden tarar; etkilenen bileşenleri, blast-radius değerini ve risk puanını döndürür. Hata yanıtları `{ error: { code, message } }` biçimindedir.
+İlk sürüm Vue 3 istemcisi, Express 5 REST API'si, migration tabanlı SQLite RDBMS katmanı, veri kaynakları, profil çalıştırmaları, kalite sorunları, sürümlü veri sözleşmeleri ve veri soy ağacından oluşur. `POST /api/data-sources/:id/contracts` yeni bir sözleşmeyi kaydeder ve önceki sürüme göre eklenen, silinen veya değişen alanları döndürür; `GET /api/data-sources/:id/contracts/latest` son sürümü getirir. `GET /api/lineage/:id/impact`, bağımlılık grafiğini döngüye girmeden tarar; etkilenen bileşenleri, blast-radius değerini ve risk puanını döndürür. `GET /api/notifications/slack-draft` kritik bulguların paylaşılabilir Slack metnini üretir; webhook'a gönderim yapmaz. `GET` ve `PUT /api/preferences` bildirim ve yenileme tercihlerini SQLite'da saklar. Hata yanıtları `{ error: { code, message } }` biçimindedir.
 
 ## Komutlar
 
 - `pnpm dev`: API ve Vue geliştirme sunucusunu birlikte başlatır.
 - `pnpm test`: REST API testlerini çalıştırır.
 - `pnpm build`: Üretim arayüzünü oluşturur.
+- `docker build -t datapulse-guardian .`: Uygulamayı çok aşamalı, root olmayan kullanıcıyla çalışan imaja paketler.
+- `docker run -p 3000:3000 datapulse-guardian`: Paketlenmiş API'yi çalıştırır; `/api/health` Docker sağlık kontrolüdür.
 
 Günlük geliştirme hedefleri kök dizindeki `ROADMAP.md`, yapılan işler ise `WORKLOG.md` dosyasında tutulur. Kılavuzdaki terimlerin projedeki karşılığı `docs/CONCEPT_MAP.md` dosyasında izlenir.
 

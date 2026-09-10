@@ -8,6 +8,7 @@ import { SqliteQualityRepository } from "../server/repositories/sqliteQualityRep
 import { SqliteContractRepository } from "../server/repositories/sqliteContractRepository.js";
 import { SqliteLineageRepository } from "../server/repositories/sqliteLineageRepository.js";
 import { SqliteTaskRepository } from "../server/repositories/sqliteTaskRepository.js";
+import { SqlitePreferenceRepository } from "../server/repositories/sqlitePreferenceRepository.js";
 
 let server;
 let baseUrl;
@@ -21,7 +22,8 @@ before(async () => {
   const qualityRepository = new SqliteQualityRepository(database);
   const contractRepository = new SqliteContractRepository(database);
   const lineageRepository = new SqliteLineageRepository(database);
-  server = createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository }).listen(0, "127.0.0.1");
+  const preferenceRepository = new SqlitePreferenceRepository(database);
+  server = createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository, preferenceRepository }).listen(0, "127.0.0.1");
   await new Promise((resolve) => server.once("listening", resolve));
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 });
@@ -149,4 +151,33 @@ test("unknown lineage node returns the standard not-found error", async () => {
   const response = await fetch(`${baseUrl}/api/lineage/999/impact`);
   assert.equal(response.status, 404);
   assert.equal((await response.json()).error.code, "LINEAGE_NODE_NOT_FOUND");
+});
+
+test("critical issues produce a Slack-ready notification draft", async () => {
+  const response = await fetch(`${baseUrl}/api/notifications/slack-draft`);
+  const draft = (await response.json()).data;
+  assert.equal(response.status, 200);
+  assert.equal(draft.issueCount, 1);
+  assert.match(draft.text, /NULL_RATE_SPIKE/);
+  assert.match(draft.text, /kritik kalite bildirimi/);
+});
+
+test("preferences persist and invalid values use the standard error shape", async () => {
+  const update = await fetch(`${baseUrl}/api/preferences`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ notificationsEnabled: false, refreshIntervalSeconds: 120 }),
+  });
+  assert.deepEqual((await update.json()).data, { notificationsEnabled: false, refreshIntervalSeconds: 120 });
+  const invalid = await fetch(`${baseUrl}/api/preferences`, {
+    method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ refreshIntervalSeconds: 4 }),
+  });
+  assert.equal(invalid.status, 400);
+  assert.equal((await invalid.json()).error.code, "PREFERENCE_VALIDATION_ERROR");
+});
+
+test("security response headers are present", async () => {
+  const response = await fetch(`${baseUrl}/api/health`);
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(response.headers.get("x-frame-options"), "DENY");
+  assert.equal(response.headers.get("x-powered-by"), null);
 });

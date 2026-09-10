@@ -44,3 +44,14 @@ Sıradaki hedef: kalite kuralları ve puanlama motoru.
 - Doğrulama: `pnpm test` 10/10 geçti, `pnpm build` başarılı.
 
 Sıradaki hedef: kritik bulgular için bildirim, kullanıcı tercihleri ve Docker paketleme.
+
+## 10 Eylül 2026
+
+- Kritik kalite bulgularını kaynak, kural ve alan bilgisiyle Slack'e uygun metne dönüştüren taslak API eklendi; webhook'a otomatik gönderim yapılmadı.
+- Bildirim açık/kapalı ve yenileme aralığı tercihleri için SQLite migration'ı ile doğrulamalı REST uçları eklendi; arayüze bildirim tercihi kontrolü yerleştirildi.
+- API'ye içerik türü, çerçeveleme, yönlendiren ve içerik güvenlik başlıkları; 32 KB JSON gövde sınırı eklendi.
+- Çok aşamalı, yalnızca üretim bağımlılıklarını içeren ve root olmayan kullanıcıyla çalışan Dockerfile ile .dockerignore eklendi.
+- Kabul ölçütü: Kritik bulgu taslağı ve tercih kalıcılığı API testleriyle doğrulandı; Docker imajı tanımı hazır, ancak bu çalışma ortamında Docker hizmeti bulunmadığından imaj derlemesi çalıştırılamadı.
+- Doğrulama: `pnpm test` 13/13 geçti, `pnpm build` başarılı.
+
+Sıradaki hedef: CI kalite kapısı, uçtan uca demo, mimari notlar ve teslim özeti.

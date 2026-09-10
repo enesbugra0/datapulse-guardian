@@ -13,8 +13,8 @@ Bu belge, kılavuzdaki başlıkların DataPulse Guardian içinde nasıl gösteri
 | Graph DB | SQLite üzerinde kaynak-iş-tablo-kural-dashboard veri soy ağacı ve etki taraması | Uygulandı |
 | Git, SVN | Git iş akışı ve sürüm kontrolü karşılaştırması | Kısmen uygulandı |
 | Jenkins, Kubernetes, Azure | CI/CD ve dağıtım mimarisi belgeleri | Planlandı |
-| Cookie | Oturum kimliği ve sunucu tercihi | Planlandı |
-| Local storage | Kalıcı arayüz tercihleri | Planlandı |
+| Cookie | Sunucuda kalıcı bildirim tercihi ve güvenli HTTP başlıkları | Uygulandı |
+| Local storage | Bildirim açma/kapama tercihi, SQLite sunucu tercihiyle eşlenir | Uygulandı |
 | Session storage | Sekmeye özel filtre durumu | Planlandı |
 | ACID | Migration transaction'ı ve atomik veri işlemleri | Uygulandı |
 | SOLID | Controller-service-repository sınırları ve bağımlılık enjeksiyonu | Kısmen uygulandı |
@@ -24,7 +24,7 @@ Bu belge, kılavuzdaki başlıkların DataPulse Guardian içinde nasıl gösteri
 | JSON | Varsayılan API veri biçimi ve sözleşme alan tanımı | Uygulandı |
 | XML | İçerik anlaşması ve SOAP yanıtları | Planlandı |
 | ORM | Repository/data mapper ve code-first yaklaşım karşılaştırması | Kısmen uygulandı |
-| Docker | Çok aşamalı uygulama imajı | Planlandı |
+| Docker | Çok aşamalı, root olmayan kullanıcı ve sağlık kontrolü içeren uygulama imajı | Uygulandı |
 | HackerRank, data structures, recursion | Döngü güvenli recursive blast-radius bağımlılık grafiği algoritması | Uygulandı |
 | Debugging | Yapılandırılmış REST hata yanıtları ve API testleri | Uygulandı |
 | callbacks, promises, await | API istemcisi ve kontrollü async iş akışları | Kısmen uygulandı |

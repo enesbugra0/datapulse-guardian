@@ -62,4 +62,13 @@ export class SqliteQualityRepository {
       })),
     };
   }
+
+  criticalIssues() {
+    return this.latestIssuesStatement.all(20)
+      .filter((row) => row.severity === "critical")
+      .map((row) => ({
+        id: Number(row.id), code: row.rule_code, field: row.field_name,
+        message: row.message, sourceName: row.source_name,
+      }));
+  }
 }

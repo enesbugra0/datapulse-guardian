@@ -102,6 +102,17 @@ const migrations = [
       CREATE INDEX idx_lineage_edges_to ON lineage_edges(to_node_id);
     `,
   },
+  {
+    version: 5,
+    name: "create_notification_preferences",
+    sql: `
+      CREATE TABLE user_preferences (
+        preference_key TEXT PRIMARY KEY,
+        preference_value TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    `,
+  },
 ];
 
 export function migrate(database) {

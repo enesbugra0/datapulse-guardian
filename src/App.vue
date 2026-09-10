@@ -5,6 +5,8 @@ const overview = ref(null);
 const sources = ref([]);
 const lineage = ref(null);
 const impact = ref(null);
+const notificationDraft = ref(null);
+const preferences = ref({ notificationsEnabled: true, refreshIntervalSeconds: 60 });
 const loading = ref(true);
 const error = ref("");
 
@@ -39,14 +41,18 @@ async function loadDashboard() {
   loading.value = true;
   error.value = "";
   try {
-    const [overviewResponse, sourcesResponse, lineageResponse] = await Promise.all([
+    const [overviewResponse, sourcesResponse, lineageResponse, draftResponse, preferencesResponse] = await Promise.all([
       request("/api/quality/overview"),
       request("/api/data-sources"),
       request("/api/lineage"),
+      request("/api/notifications/slack-draft"),
+      request("/api/preferences"),
     ]);
     overview.value = overviewResponse.data;
     sources.value = sourcesResponse.data;
     lineage.value = lineageResponse.data;
+    notificationDraft.value = draftResponse.data;
+    preferences.value = preferencesResponse.data;
     const source = lineage.value.nodes.find((node) => node.type === "source");
     if (source) await loadImpact(source.id);
   } catch (cause) {
@@ -61,6 +67,20 @@ async function loadImpact(nodeId) {
     impact.value = (await request(`/api/lineage/${nodeId}/impact`)).data;
   } catch (cause) {
     error.value = cause.message;
+  }
+}
+
+async function saveNotificationsEnabled() {
+  try {
+    const response = await fetch("/api/preferences", {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notificationsEnabled: preferences.value.notificationsEnabled }),
+    });
+    if (!response.ok) throw new Error("Tercih kaydedilemedi.");
+    preferences.value = (await response.json()).data;
+    window.localStorage.setItem("datapulse-notifications-enabled", String(preferences.value.notificationsEnabled));
+  } catch (cause) {
+    error.value = "Bildirim tercihi kaydedilemedi.";
   }
 }
 
@@ -183,6 +203,21 @@ onMounted(loadDashboard);
         <ol class="impact-path">
           <li v-for="node in impact.affected" :key="node.id"><strong>{{ node.name }}</strong><span>{{ node.type }} · {{ node.depth }} adım · {{ node.criticality }}</span></li>
         </ol>
+      </section>
+
+      <section v-if="notificationDraft" class="panel notification-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">BİLDİRİM HAZIRLIĞI</p>
+            <h2>Kritik bulgu Slack taslağı</h2>
+          </div>
+          <span>{{ notificationDraft.issueCount }} kritik bulgu</span>
+        </div>
+        <pre>{{ notificationDraft.text }}</pre>
+        <label class="preference-toggle">
+          <input v-model="preferences.notificationsEnabled" type="checkbox" @change="saveNotificationsEnabled">
+          Kritik bulgu bildirimleri açık
+        </label>
       </section>
     </template>
   </main>

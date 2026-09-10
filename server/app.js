@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import { createSlackDraft } from "./repositories/slackDraftService.js";
 
 const allowedStatuses = new Set(["todo", "doing", "done"]);
 
@@ -21,15 +22,26 @@ function validContract(body) {
   return null;
 }
 
-export function createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository }) {
+export function createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository, preferenceRepository }) {
   if (!taskRepository) throw new Error("taskRepository zorunludur.");
   if (!qualityRepository) throw new Error("qualityRepository zorunludur.");
   if (!contractRepository) throw new Error("contractRepository zorunludur.");
   if (!lineageRepository) throw new Error("lineageRepository zorunludur.");
+  if (!preferenceRepository) throw new Error("preferenceRepository zorunludur.");
 
   const app = express();
+  app.disable("x-powered-by");
   app.use(cors());
-  app.use(express.json());
+  app.use(express.json({ limit: "32kb" }));
+  app.use((_request, response, next) => {
+    response.set({
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "Referrer-Policy": "no-referrer",
+      "Content-Security-Policy": "default-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'",
+    });
+    next();
+  });
 
   app.get("/api/health", (_request, response) => {
     response.json({ status: "ok", service: "datapulse-guardian" });
@@ -41,6 +53,25 @@ export function createApp({ taskRepository, qualityRepository, contractRepositor
 
   app.get("/api/data-sources", (_request, response) => {
     response.json({ data: qualityRepository.listSources() });
+  });
+
+  app.get("/api/notifications/slack-draft", (_request, response) => {
+    response.json({ data: createSlackDraft(qualityRepository.criticalIssues()) });
+  });
+
+  app.get("/api/preferences", (_request, response) => {
+    response.json({ data: preferenceRepository.getAll() });
+  });
+
+  app.put("/api/preferences", (request, response) => {
+    const { notificationsEnabled, refreshIntervalSeconds } = request.body ?? {};
+    if (notificationsEnabled !== undefined && typeof notificationsEnabled !== "boolean") {
+      return error(response, 400, "PREFERENCE_VALIDATION_ERROR", "Bildirim tercihi doğru/yanlış olmalıdır.");
+    }
+    if (refreshIntervalSeconds !== undefined && (!Number.isInteger(refreshIntervalSeconds) || refreshIntervalSeconds < 15 || refreshIntervalSeconds > 3600)) {
+      return error(response, 400, "PREFERENCE_VALIDATION_ERROR", "Yenileme aralığı 15 ile 3600 saniye arasında olmalıdır.");
+    }
+    return response.json({ data: preferenceRepository.update({ notificationsEnabled, refreshIntervalSeconds }) });
   });
 
   app.get("/api/lineage", (_request, response) => {
