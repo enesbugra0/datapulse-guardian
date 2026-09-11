@@ -103,17 +103,6 @@ const migrations = [
     `,
   },
   {
-    version: 5,
-    name: "create_notification_preferences",
-    sql: `
-      CREATE TABLE user_preferences (
-        preference_key TEXT PRIMARY KEY,
-        preference_value TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
-    `,
-  },
-  {
     version: 6,
     name: "create_profile_history_and_rules",
     sql: `
@@ -152,6 +141,13 @@ const migrations = [
       BEGIN SELECT RAISE(ABORT, 'profile events are append-only'); END;
       CREATE TRIGGER profile_events_no_delete BEFORE DELETE ON profile_events
       BEGIN SELECT RAISE(ABORT, 'profile events are append-only'); END;
+    `,
+  },
+  {
+    version: 7,
+    name: "remove_legacy_preferences",
+    sql: `
+      DROP TABLE IF EXISTS user_preferences;
     `,
   },
 ];

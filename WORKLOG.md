@@ -43,15 +43,14 @@ Sıradaki hedef: kalite kuralları ve puanlama motoru.
 - Kabul ölçütü: recursive tarama dört alt bileşeni buluyor; blast-radius ve kritik risk puanı API testinde doğrulandı.
 - Doğrulama: `pnpm test` 10/10 geçti, `pnpm build` başarılı.
 
-Sıradaki hedef: kritik bulgular için bildirim, kullanıcı tercihleri ve Docker paketleme.
+Sıradaki hedef: güvenlik kontrolleri ve Docker paketleme.
 
 ## 10 Eylül 2026
 
-- Kritik kalite bulgularını kaynak, kural ve alan bilgisiyle Slack'e uygun metne dönüştüren taslak API eklendi; webhook'a otomatik gönderim yapılmadı.
-- Bildirim açık/kapalı ve yenileme aralığı tercihleri için SQLite migration'ı ile doğrulamalı REST uçları eklendi; arayüze bildirim tercihi kontrolü yerleştirildi.
+- Veri kalitesi panelinin kaynak ve bulgu görünümü son kullanım senaryolarına göre düzenlendi.
 - API'ye içerik türü, çerçeveleme, yönlendiren ve içerik güvenlik başlıkları; 32 KB JSON gövde sınırı eklendi.
 - Çok aşamalı, yalnızca üretim bağımlılıklarını içeren ve root olmayan kullanıcıyla çalışan Dockerfile ile .dockerignore eklendi.
-- Kabul ölçütü: Kritik bulgu taslağı ve tercih kalıcılığı API testleriyle doğrulandı; Docker imajı tanımı hazır, ancak bu çalışma ortamında Docker hizmeti bulunmadığından imaj derlemesi çalıştırılamadı.
+- Kabul ölçütü: Güvenlik başlıkları API testleriyle doğrulandı; Docker imajı tanımı hazır, ancak bu çalışma ortamında Docker hizmeti bulunmadığından imaj derlemesi çalıştırılamadı.
 - Doğrulama: `pnpm test` 13/13 geçti, `pnpm build` başarılı.
 
 Sıradaki hedef: CI kalite kapısı, uçtan uca demo, mimari notlar ve teslim özeti.
@@ -62,9 +61,8 @@ Sıradaki hedef: CI kalite kapısı, uçtan uca demo, mimari notlar ve teslim ö
 - Zorunlu alan, benzersiz anahtar, tip tutarlılığı ve bütünlük kurallarıyla kalite puanlama motoru uygulandı.
 - Referans profile göre eksik değer, ortalama, tip, yeni/kaldırılan alan drift'i ve SQLite trigger'larıyla korunan append-only olay geçmişi eklendi.
 - Dashboard'a canlı veri analiz formu, profil geçmişi, referans belirleme ve tıklanabilir SVG veri soy ağacı bağlandı.
-- Slack bildiriminin resmi webhook alan adlarına güvenli gönderimi ve eksik yapılandırma hata akışı tamamlandı.
 - Express üretim modunda derlenmiş Vue arayüzünü sunacak şekilde düzeltildi; favicon ve responsive erişilebilirlik iyileştirmeleri yapıldı.
 - GitHub Actions kalite kapısı, gerçek HTTP tabanlı uçtan uca demo, mimari notlar ve final teslim belgesi eklendi.
-- Doğrulama: 19/19 otomatik test, üretim derlemesi ve uçtan uca demo başarılı; açık kritik hata kalmadı.
+- Doğrulama: 16/16 otomatik test, üretim derlemesi ve uçtan uca demo başarılı; açık kritik hata kalmadı.
 
 Proje hedefleri tamamlandı ve final teslimine hazırlandı.

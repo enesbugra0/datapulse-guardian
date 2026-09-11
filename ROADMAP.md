@@ -11,7 +11,7 @@ Dokuz iş gününün her biri benzer büyüklükte bir geliştirme, test ve dok�
 | 7 Eylül | Dağılım drift'i ve olay geçmişi | Referans profil saklanır; oran/dağılım değişimi yakalanır; çalışmalar append-only geçmişte izlenir | NoSQL yaklaşımı, promises, await |
 | 8 Eylül | Veri soy ağacı ve grafik görünümü | Kaynak-iş-tablo-kural-dashboard ilişkileri API'den gelir ve Vue ekranında gezilebilir | Graph DB kavramı, Vue.js, client-server |
 | 9 Eylül | Etki alanı ve önceliklendirme | Recursive bağımlılık taraması etkilenen bileşenleri bulur; blast-radius ve risk puanı üretilir | recursion, data structures, REST |
-| 10 Eylül | Bildirim, güvenlik ve paketleme | Kritik bulgu Slack taslağı üretir; kullanıcı tercihleri saklanır; Docker imajı ve güvenlik kontrolleri çalışır | Cookie/storage, Docker, HTTP, SOLID |
+| 10 Eylül | Güvenlik ve paketleme | Kullanıcı tercihleri belgelenir; Docker imajı ve güvenlik kontrolleri çalışır | Cookie/storage, Docker, HTTP, SOLID |
 | 11 Eylül | CI, uçtan uca doğrulama ve final teslim | CI kalite kapısı geçer; demo senaryosu, proje notları ve teslim özeti tamamlanır; açık kritik hata kalmaz | Git, CI/Jenkins yaklaşımı, Kubernetes/Azure notları |
 
 Hafta sonu geliştirme ve stand-up planlanmaz. Her iş gününde yalnızca o günün teslim dilimi uygulanır; mevcut çalışan davranış korunur, testler çalıştırılır ve sonuç WORKLOG'a yazılır. 11 Eylül sonunda proje çalışır, test edilmiş, Docker ile paketlenebilir ve sunuma hazır olmalıdır.

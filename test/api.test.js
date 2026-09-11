@@ -8,9 +8,7 @@ import { SqliteQualityRepository } from "../server/repositories/sqliteQualityRep
 import { SqliteContractRepository } from "../server/repositories/sqliteContractRepository.js";
 import { SqliteLineageRepository } from "../server/repositories/sqliteLineageRepository.js";
 import { SqliteTaskRepository } from "../server/repositories/sqliteTaskRepository.js";
-import { SqlitePreferenceRepository } from "../server/repositories/sqlitePreferenceRepository.js";
 import { SqliteAnalysisRepository } from "../server/repositories/sqliteAnalysisRepository.js";
-import { sendSlackDraft } from "../server/repositories/slackDraftService.js";
 
 let server;
 let baseUrl;
@@ -24,9 +22,8 @@ before(async () => {
   const qualityRepository = new SqliteQualityRepository(database);
   const contractRepository = new SqliteContractRepository(database);
   const lineageRepository = new SqliteLineageRepository(database);
-  const preferenceRepository = new SqlitePreferenceRepository(database);
   const analysisRepository = new SqliteAnalysisRepository(database);
-  server = createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository, preferenceRepository, analysisRepository }).listen(0, "127.0.0.1");
+  server = createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository, analysisRepository }).listen(0, "127.0.0.1");
   await new Promise((resolve) => server.once("listening", resolve));
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 });
@@ -156,28 +153,6 @@ test("unknown lineage node returns the standard not-found error", async () => {
   assert.equal((await response.json()).error.code, "LINEAGE_NODE_NOT_FOUND");
 });
 
-test("critical issues produce a Slack-ready notification draft", async () => {
-  const response = await fetch(`${baseUrl}/api/notifications/slack-draft`);
-  const draft = (await response.json()).data;
-  assert.equal(response.status, 200);
-  assert.equal(draft.issueCount, 1);
-  assert.match(draft.text, /NULL_RATE_SPIKE/);
-  assert.match(draft.text, /kritik kalite bildirimi/);
-});
-
-test("preferences persist and invalid values use the standard error shape", async () => {
-  const update = await fetch(`${baseUrl}/api/preferences`, {
-    method: "PUT", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ notificationsEnabled: false, refreshIntervalSeconds: 120 }),
-  });
-  assert.deepEqual((await update.json()).data, { notificationsEnabled: false, refreshIntervalSeconds: 120 });
-  const invalid = await fetch(`${baseUrl}/api/preferences`, {
-    method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ refreshIntervalSeconds: 4 }),
-  });
-  assert.equal(invalid.status, 400);
-  assert.equal((await invalid.json()).error.code, "PREFERENCE_VALIDATION_ERROR");
-});
-
 test("security response headers are present", async () => {
   const response = await fetch(`${baseUrl}/api/health`);
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");
@@ -249,27 +224,4 @@ test("latest profile can be promoted as a new drift baseline", async () => {
   const baseline = (await response.json()).data;
   assert.equal(response.status, 200);
   assert.equal(baseline.profile.rowCount, 2);
-});
-
-test("Slack delivery requires a configured webhook and supports secure Slack URLs", async () => {
-  await fetch(`${baseUrl}/api/preferences`, {
-    method: "PUT", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ notificationsEnabled: true }),
-  });
-  const missing = await fetch(`${baseUrl}/api/notifications/slack`, { method: "POST" });
-  assert.equal(missing.status, 503);
-  assert.equal((await missing.json()).error.code, "SLACK_WEBHOOK_NOT_CONFIGURED");
-
-  let received;
-  const webhookUrl = `https://hooks.slack.com/${["services", "T", "B", "X"].join("/")}`;
-  const sent = await sendSlackDraft({ text: "Kalite uyarısı" }, {
-    webhookUrl,
-    fetchImpl: async (url, options) => {
-      received = { url: String(url), payload: JSON.parse(options.body) };
-      return { ok: true, status: 200 };
-    },
-  });
-  assert.equal(sent.sent, true);
-  assert.equal(received.url, webhookUrl);
-  assert.deepEqual(received.payload, { text: "Kalite uyarısı" });
 });

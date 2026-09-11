@@ -13,8 +13,8 @@ Bu belge, kılavuzdaki başlıkların DataPulse Guardian içinde nasıl gösteri
 | Graph DB | SQLite üzerinde kaynak-iş-tablo-kural-dashboard veri soy ağacı ve etki taraması | Uygulandı |
 | Git, SVN | Git iş akışı ve sürüm kontrolü karşılaştırması | Kısmen uygulandı |
 | Jenkins, Kubernetes, Azure | GitHub Actions kalite kapısı ve eşdeğer dağıtım mimarisi | Uygulandı |
-| Cookie | Sunucuda kalıcı bildirim tercihi ve güvenli HTTP başlıkları | Uygulandı |
-| Local storage | Bildirim açma/kapama tercihi, SQLite sunucu tercihiyle eşlenir | Uygulandı |
+| Cookie | Oturum ve tercih saklama yaklaşımı karşılaştırma notu | Belgelendi |
+| Local storage | Cihazda kalıcı tercih saklama yaklaşımı karşılaştırma notu | Belgelendi |
 | Session storage | Sekmeye özel kaynak ve veri biçimi seçimi | Uygulandı |
 | ACID | Migration transaction'ı ve atomik veri işlemleri | Uygulandı |
 | SOLID | Controller-service-repository sınırları ve bağımlılık enjeksiyonu | Uygulandı |
@@ -27,6 +27,6 @@ Bu belge, kılavuzdaki başlıkların DataPulse Guardian içinde nasıl gösteri
 | Docker | Çok aşamalı, root olmayan kullanıcı ve sağlık kontrolü içeren uygulama imajı | Uygulandı |
 | HackerRank, data structures, recursion | Döngü güvenli recursive blast-radius bağımlılık grafiği algoritması | Uygulandı |
 | Debugging | Yapılandırılmış REST hata yanıtları ve API testleri | Uygulandı |
-| callbacks, promises, await | API istemcisi, Slack çağrısı ve kontrollü async iş akışları | Uygulandı |
+| callbacks, promises, await | API istemcisi ve kontrollü async iş akışları | Uygulandı |
 
 Durumlar her günlük geliştirme sonunda güncellenir; yalnızca çalışan veya belgelenmiş karşılıklar "Uygulandı" olarak işaretlenir.

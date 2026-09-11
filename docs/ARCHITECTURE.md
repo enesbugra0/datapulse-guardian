@@ -1,6 +1,6 @@
 # Mimari ve teknik kararlar
 
-DataPulse Guardian tek depoda çalışan Vue 3 istemcisi, Express REST API'si ve SQLite veri katmanından oluşur. Tarayıcı yalnızca REST uçlarına erişir; veri ayrıştırma, kalite kararı, drift karşılaştırması ve Slack webhook çağrısı sunucuda gerçekleşir.
+DataPulse Guardian tek depoda çalışan Vue 3 istemcisi, Express REST API'si ve SQLite veri katmanından oluşur. Tarayıcı yalnızca REST uçlarına erişir; veri ayrıştırma, kalite kararı ve drift karşılaştırması sunucuda gerçekleşir.
 
 ## Veri akışı
 
@@ -9,7 +9,7 @@ DataPulse Guardian tek depoda çalışan Vue 3 istemcisi, Express REST API'si ve
 3. Kural motoru zorunlu alan, benzersiz anahtar, tip tutarlılığı ve bütünlük kurallarını uygular.
 4. Profil, kaynağın referans profiliyle karşılaştırılır. Eksik değer oranı, ortalama, tip, yeni ve kaldırılan alan değişimleri drift olarak raporlanır.
 5. Çalışma, bulgular ve profil olayı tek SQLite transaction'ında kaydedilir. `profile_events` tablosundaki update/delete trigger'ları olay geçmişini append-only tutar.
-6. Vue dashboard kalite puanını, geçmişi, etki grafiğini ve Slack bildirim durumunu gösterir.
+6. Vue dashboard kalite puanını, geçmişi ve etki grafiğini gösterir.
 
 ## Katmanlar ve ilkeler
 
@@ -21,7 +21,7 @@ DataPulse Guardian tek depoda çalışan Vue 3 istemcisi, Express REST API'si ve
 
 ## Güvenlik ve dağıtım
 
-İstek gövdesi 1 MB ile sınırlıdır; güvenlik başlıkları etkindir; Express imzası kapalıdır. Slack hedefi yalnızca HTTPS ve resmi Slack webhook alan adlarıyla sınırlandırılır. Webhook değeri ortam değişkeninde tutulur ve Git'e girmez.
+İstek gövdesi 1 MB ile sınırlıdır; güvenlik başlıkları etkindir ve Express imzası kapalıdır.
 
 Docker imajı çok aşamalı derlenir, üretim bağımlılıklarını taşır ve root olmayan kullanıcıyla çalışır. GitHub Actions kalite kapısı test, üretim derlemesi, uçtan uca demo ve Docker build adımlarını çalıştırır. Aynı adımlar Jenkins pipeline'ına taşınabilir; imaj Kubernetes Deployment/Service olarak Azure Kubernetes Service üzerinde çalıştırılabilir. Kalıcı SQLite kullanımı tek replika içindir; çoklu replika üretim kurulumu için yönetilen PostgreSQL önerilir.
 

@@ -2,7 +2,6 @@ import cors from "cors";
 import express from "express";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { createSlackDraft, sendSlackDraft } from "./repositories/slackDraftService.js";
 import { createProfile, DatasetValidationError, detectDrift, evaluateQuality, parseDataset, scoreQuality } from "./services/dataProfiler.js";
 
 const allowedStatuses = new Set(["todo", "doing", "done"]);
@@ -25,12 +24,11 @@ function validContract(body) {
   return null;
 }
 
-export function createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository, preferenceRepository, analysisRepository, slackWebhookUrl = process.env.SLACK_WEBHOOK_URL, fetchImpl = fetch }) {
+export function createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository, analysisRepository }) {
   if (!taskRepository) throw new Error("taskRepository zorunludur.");
   if (!qualityRepository) throw new Error("qualityRepository zorunludur.");
   if (!contractRepository) throw new Error("contractRepository zorunludur.");
   if (!lineageRepository) throw new Error("lineageRepository zorunludur.");
-  if (!preferenceRepository) throw new Error("preferenceRepository zorunludur.");
   if (!analysisRepository) throw new Error("analysisRepository zorunludur.");
 
   const app = express();
@@ -57,41 +55,6 @@ export function createApp({ taskRepository, qualityRepository, contractRepositor
 
   app.get("/api/data-sources", (_request, response) => {
     response.json({ data: qualityRepository.listSources() });
-  });
-
-  app.get("/api/notifications/slack-draft", (_request, response) => {
-    response.json({ data: createSlackDraft(qualityRepository.criticalIssues()) });
-  });
-
-  app.post("/api/notifications/slack", async (_request, response, next) => {
-    const preferences = preferenceRepository.getAll();
-    if (!preferences.notificationsEnabled) return error(response, 409, "NOTIFICATIONS_DISABLED", "Kritik bulgu bildirimleri kapalı.");
-    const draft = createSlackDraft(qualityRepository.criticalIssues());
-    if (draft.issueCount === 0) return response.json({ data: { sent: false, reason: "no_critical_issues" } });
-    try {
-      const result = await sendSlackDraft(draft, { webhookUrl: slackWebhookUrl, fetchImpl });
-      if (result.reason === "not_configured") return error(response, 503, "SLACK_WEBHOOK_NOT_CONFIGURED", "Slack webhook adresi yapılandırılmamış.");
-      if (result.reason === "invalid_webhook") return error(response, 400, "SLACK_WEBHOOK_INVALID", "Slack webhook adresi geçerli değil.");
-      if (!result.sent) return error(response, 502, "SLACK_DELIVERY_FAILED", "Slack bildirimi kabul etmedi.");
-      return response.status(202).json({ data: result });
-    } catch (cause) {
-      return next(cause);
-    }
-  });
-
-  app.get("/api/preferences", (_request, response) => {
-    response.json({ data: preferenceRepository.getAll() });
-  });
-
-  app.put("/api/preferences", (request, response) => {
-    const { notificationsEnabled, refreshIntervalSeconds } = request.body ?? {};
-    if (notificationsEnabled !== undefined && typeof notificationsEnabled !== "boolean") {
-      return error(response, 400, "PREFERENCE_VALIDATION_ERROR", "Bildirim tercihi doğru/yanlış olmalıdır.");
-    }
-    if (refreshIntervalSeconds !== undefined && (!Number.isInteger(refreshIntervalSeconds) || refreshIntervalSeconds < 15 || refreshIntervalSeconds > 3600)) {
-      return error(response, 400, "PREFERENCE_VALIDATION_ERROR", "Yenileme aralığı 15 ile 3600 saniye arasında olmalıdır.");
-    }
-    return response.json({ data: preferenceRepository.update({ notificationsEnabled, refreshIntervalSeconds }) });
   });
 
   app.get("/api/lineage", (_request, response) => {

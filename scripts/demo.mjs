@@ -6,7 +6,6 @@ import { seedDemoData } from "../server/db/demoSeed.js";
 import { SqliteAnalysisRepository } from "../server/repositories/sqliteAnalysisRepository.js";
 import { SqliteContractRepository } from "../server/repositories/sqliteContractRepository.js";
 import { SqliteLineageRepository } from "../server/repositories/sqliteLineageRepository.js";
-import { SqlitePreferenceRepository } from "../server/repositories/sqlitePreferenceRepository.js";
 import { SqliteQualityRepository } from "../server/repositories/sqliteQualityRepository.js";
 import { SqliteTaskRepository } from "../server/repositories/sqliteTaskRepository.js";
 
@@ -18,7 +17,6 @@ const repositories = {
   qualityRepository: new SqliteQualityRepository(database),
   contractRepository: new SqliteContractRepository(database),
   lineageRepository: new SqliteLineageRepository(database),
-  preferenceRepository: new SqlitePreferenceRepository(database),
   analysisRepository: new SqliteAnalysisRepository(database),
 };
 const server = createApp(repositories).listen(0, "127.0.0.1");
