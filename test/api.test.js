@@ -9,6 +9,8 @@ import { SqliteContractRepository } from "../server/repositories/sqliteContractR
 import { SqliteLineageRepository } from "../server/repositories/sqliteLineageRepository.js";
 import { SqliteTaskRepository } from "../server/repositories/sqliteTaskRepository.js";
 import { SqlitePreferenceRepository } from "../server/repositories/sqlitePreferenceRepository.js";
+import { SqliteAnalysisRepository } from "../server/repositories/sqliteAnalysisRepository.js";
+import { sendSlackDraft } from "../server/repositories/slackDraftService.js";
 
 let server;
 let baseUrl;
@@ -23,7 +25,8 @@ before(async () => {
   const contractRepository = new SqliteContractRepository(database);
   const lineageRepository = new SqliteLineageRepository(database);
   const preferenceRepository = new SqlitePreferenceRepository(database);
-  server = createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository, preferenceRepository }).listen(0, "127.0.0.1");
+  const analysisRepository = new SqliteAnalysisRepository(database);
+  server = createApp({ taskRepository, qualityRepository, contractRepository, lineageRepository, preferenceRepository, analysisRepository }).listen(0, "127.0.0.1");
   await new Promise((resolve) => server.once("listening", resolve));
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 });
@@ -180,4 +183,93 @@ test("security response headers are present", async () => {
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");
   assert.equal(response.headers.get("x-frame-options"), "DENY");
   assert.equal(response.headers.get("x-powered-by"), null);
+});
+
+test("CSV input is parsed and profiled", async () => {
+  const response = await fetch(`${baseUrl}/api/data-sources/2/analyze`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ format: "csv", content: 'registry_number,company_name,revenue\nTSG-1,"Atlas, AŞ",120\nTSG-2,,180' }),
+  });
+  const result = (await response.json()).data;
+  assert.equal(response.status, 201);
+  assert.equal(result.profile.rowCount, 2);
+  assert.equal(result.profile.fields.find((field) => field.name === "company_name").nullCount, 1);
+  assert.equal(result.baselineCreated, true);
+});
+
+test("JSON analysis runs four quality rules and detects distribution drift", async () => {
+  const sourceId = 3;
+  const baseline = await fetch(`${baseUrl}/api/data-sources/${sourceId}/analyze`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ format: "json", content: JSON.stringify([
+      { event_id: 1, amount: 10, device: "mobile" },
+      { event_id: 2, amount: 12, device: "web" },
+    ]) }),
+  });
+  assert.equal(baseline.status, 201);
+  const changed = await fetch(`${baseUrl}/api/data-sources/${sourceId}/analyze`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ format: "json", content: JSON.stringify([
+      { event_id: 1, amount: 50, device: null },
+      { event_id: 1, amount: 60, device: null },
+    ]) }),
+  });
+  const result = (await changed.json()).data;
+  assert.equal(result.issues.some((issue) => issue.ruleCode === "UNIQUE_KEY"), true);
+  assert.equal(result.issues.some((issue) => issue.ruleCode === "COMPLETENESS"), true);
+  assert.equal(result.drift.some((item) => item.field === "amount" && item.metric === "mean"), true);
+  assert.equal(result.status, "failed");
+  assert.ok(result.score < 80);
+});
+
+test("XML input and append-only profile history work", async () => {
+  const response = await fetch(`${baseUrl}/api/data-sources/1/analyze`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ format: "xml", content: "<records><record><customer_id>1</customer_id><registered_at>2026-09-11</registered_at></record><record><customer_id>2</customer_id><registered_at>2026-09-12</registered_at></record></records>" }),
+  });
+  assert.equal(response.status, 201);
+  const history = await fetch(`${baseUrl}/api/data-sources/1/history`);
+  const events = (await history.json()).data;
+  assert.ok(events.length >= 1);
+  assert.equal(events[0].type, "profile_completed");
+  assert.throws(() => database.prepare("UPDATE profile_events SET event_type = 'changed' WHERE id = ?").run(events[0].id), /append-only/);
+});
+
+test("invalid dataset returns the standard validation error", async () => {
+  const response = await fetch(`${baseUrl}/api/data-sources/1/analyze`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ format: "json", content: "not-json" }),
+  });
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error.code, "DATASET_VALIDATION_ERROR");
+});
+
+test("latest profile can be promoted as a new drift baseline", async () => {
+  const response = await fetch(`${baseUrl}/api/data-sources/3/baseline`, { method: "POST" });
+  const baseline = (await response.json()).data;
+  assert.equal(response.status, 200);
+  assert.equal(baseline.profile.rowCount, 2);
+});
+
+test("Slack delivery requires a configured webhook and supports secure Slack URLs", async () => {
+  await fetch(`${baseUrl}/api/preferences`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ notificationsEnabled: true }),
+  });
+  const missing = await fetch(`${baseUrl}/api/notifications/slack`, { method: "POST" });
+  assert.equal(missing.status, 503);
+  assert.equal((await missing.json()).error.code, "SLACK_WEBHOOK_NOT_CONFIGURED");
+
+  let received;
+  const webhookUrl = `https://hooks.slack.com/${["services", "T", "B", "X"].join("/")}`;
+  const sent = await sendSlackDraft({ text: "Kalite uyarısı" }, {
+    webhookUrl,
+    fetchImpl: async (url, options) => {
+      received = { url: String(url), payload: JSON.parse(options.body) };
+      return { ok: true, status: 200 };
+    },
+  });
+  assert.equal(sent.sent, true);
+  assert.equal(received.url, webhookUrl);
+  assert.deepEqual(received.payload, { text: "Kalite uyarısı" });
 });

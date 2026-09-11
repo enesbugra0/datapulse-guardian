@@ -8,3 +8,22 @@ export function createSlackDraft(issues) {
       : "DataPulse Guardian: gönderilecek kritik kalite bulgusu yok.",
   };
 }
+
+export async function sendSlackDraft(draft, { webhookUrl, fetchImpl = fetch }) {
+  if (!webhookUrl) return { sent: false, reason: "not_configured" };
+  let target;
+  try {
+    target = new URL(webhookUrl);
+  } catch {
+    return { sent: false, reason: "invalid_webhook" };
+  }
+  if (target.protocol !== "https:" || !["hooks.slack.com", "hooks.slack-gov.com"].includes(target.hostname)) {
+    return { sent: false, reason: "invalid_webhook" };
+  }
+  const response = await fetchImpl(target, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: draft.text }),
+  });
+  return { sent: response.ok, reason: response.ok ? null : "slack_rejected", status: response.status };
+}

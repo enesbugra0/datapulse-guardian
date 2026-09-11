@@ -113,6 +113,47 @@ const migrations = [
       );
     `,
   },
+  {
+    version: 6,
+    name: "create_profile_history_and_rules",
+    sql: `
+      CREATE TABLE quality_rule_definitions (
+        code TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        severity TEXT NOT NULL CHECK (severity IN ('info', 'warning', 'critical')),
+        description TEXT NOT NULL
+      );
+
+      INSERT INTO quality_rule_definitions (code, name, severity, description) VALUES
+        ('REQUIRED_FIELD', 'Zorunlu alan', 'critical', 'Sözleşmede zorunlu tanımlanan alanların doluluğunu denetler.'),
+        ('UNIQUE_KEY', 'Benzersiz anahtar', 'critical', 'Kimlik ve anahtar alanlarındaki tekrarları denetler.'),
+        ('TYPE_CONSISTENCY', 'Tip tutarlılığı', 'warning', 'Gözlenen alan tipini veri sözleşmesiyle karşılaştırır.'),
+        ('COMPLETENESS', 'Veri bütünlüğü', 'warning', 'Alanlardaki eksik değer oranını denetler.');
+
+      CREATE TABLE profile_baselines (
+        source_id INTEGER PRIMARY KEY REFERENCES data_sources(id) ON DELETE CASCADE,
+        run_id INTEGER NOT NULL REFERENCES quality_runs(id) ON DELETE CASCADE,
+        profile_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE profile_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_id INTEGER NOT NULL REFERENCES data_sources(id) ON DELETE CASCADE,
+        run_id INTEGER NOT NULL REFERENCES quality_runs(id) ON DELETE CASCADE,
+        event_type TEXT NOT NULL,
+        payload_json TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+
+      CREATE INDEX idx_profile_events_source ON profile_events(source_id, id DESC);
+      CREATE TRIGGER profile_events_no_update BEFORE UPDATE ON profile_events
+      BEGIN SELECT RAISE(ABORT, 'profile events are append-only'); END;
+      CREATE TRIGGER profile_events_no_delete BEFORE DELETE ON profile_events
+      BEGIN SELECT RAISE(ABORT, 'profile events are append-only'); END;
+    `,
+  },
 ];
 
 export function migrate(database) {
